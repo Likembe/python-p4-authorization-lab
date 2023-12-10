@@ -87,12 +87,28 @@ class CheckSession(Resource):
 class MemberOnlyIndex(Resource):
     
     def get(self):
-        pass
+        if not session.get('user_id'):
+            return {'message': 'Unauthorized access'}, 401
+        
+        members_only_articles = Article.query.filter(Article.is_member_only == True).all()
+        if not members_only_articles:  # Check if list is empty
+            return make_response(jsonify([]), 200)
+        
+        articles_json = [article.to_dict() for article in members_only_articles]
+        return make_response(jsonify(articles_json), 200)
 
 class MemberOnlyArticle(Resource):
     
     def get(self, id):
-        pass
+        if not session.get('user_id'):
+            return {'message': 'Unauthorized access'}, 401
+        
+        members_only_articles = Article.query.filter(Article.is_member_only == True).all()
+        if members_only_articles is None:
+            return make_response(jsonify([]), 200)
+        
+        articles_json = [article.to_dict() for article in members_only_articles]
+        return make_response(jsonify(articles_json), 200)
 
 api.add_resource(ClearSession, '/clear', endpoint='clear')
 api.add_resource(IndexArticle, '/articles', endpoint='article_list')
